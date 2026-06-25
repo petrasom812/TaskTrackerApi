@@ -28,3 +28,5 @@ Thumbs.db
 
 # Publish
 publish/
+
+.env
