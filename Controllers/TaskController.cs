@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using TaskTrackerApi.DTOs;
+using TaskTrackerApi.Interface;
 using TaskTrackerApi.Services;
 
 namespace TaskTrackerApi.Controllers
@@ -8,28 +9,28 @@ namespace TaskTrackerApi.Controllers
     [Route("api/[controller]")]
     public class TaskController : ControllerBase
     {
-        private readonly ServiceTask _service;
-        public TaskController(ServiceTask service)
+        private readonly IServiceTask _service;
+        public TaskController(IServiceTask service)
         {
             _service = service;
         }
 
         [HttpGet]
-        public IActionResult Get()
+        public async Task<ActionResult> Get()
         {
-            var tasks = _service.GetTasks();
+            var tasks = await _service.GetTasksAsync();
             return Ok(tasks);
         }
         [HttpPost]
-        public IActionResult Post(CreateTaskDto dto)
+        public async Task<ActionResult> Post(CreateTaskDto dto)
         {
-            var task = _service.AddTask(dto.title);
+            var task = await _service.AddTaskAsync(dto.title);
             return Ok(task);
         }
         [HttpPut("{id}")]
-        public IActionResult Put(int id, UpdateTaskDto dto)
+        public async Task<IActionResult> Put(int id, UpdateTaskDto dto)
         {
-            var result = _service.UpdateTask(id, dto.title, dto.IsCompleted);
+            var result = await _service.UpdateTaskAsync(id, dto.title, dto.IsCompleted);
             if (!result)
             {
                 return NotFound("Task not found");
@@ -37,9 +38,9 @@ namespace TaskTrackerApi.Controllers
             return Ok("Task marked as completed");
         }
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var result = _service.DeleteTask(id);
+            var result = await _service.DeleteTaskAsync(id);
             if(!result)
                 return NotFound("Task not found");
             return NoContent();

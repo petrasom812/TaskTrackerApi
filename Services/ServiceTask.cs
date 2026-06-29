@@ -1,10 +1,12 @@
-using System;
+using Microsoft.EntityFrameworkCore;
 using TaskTrackerApi.Data;
 using TaskTrackerApi.Models;
+using TaskTrackerApi.DTOs;
+using TaskTrackerApi.Interface;
 
 namespace TaskTrackerApi.Services
 {
-    public class ServiceTask
+    public class ServiceTask : IServiceTask
     {
         private readonly AppDbContext _context;
 
@@ -14,13 +16,20 @@ namespace TaskTrackerApi.Services
         }
 
         //GET Method: Get All data or SELECT * FROM table_name
-        public List<TaskItem> GetTasks()
+        public async Task<List<GetTaskDto>> GetTasksAsync()
         {
-            return _context.Tasks.ToList();
+            var tasks = await _context.Tasks.ToListAsync();
+
+            return tasks.Select(t => new GetTaskDto
+            {
+                Id = t.Id,
+                Title = t.Title,
+                IsCompleted = t.IsCompleted
+            }).ToList();
         }
         
         //POST Method: Insert or INSERT INTO table_name (col1, col2, col3) values (value1, value2, value3)
-        public TaskItem AddTask(string title)
+        public async Task<GetTaskDto> AddTaskAsync(string title)
         {
             var task = new TaskItem
             {
@@ -28,33 +37,40 @@ namespace TaskTrackerApi.Services
                 IsCompleted = false
             };
             _context.Tasks.Add(task);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            return task;
+            return new GetTaskDto
+            {
+                Id = task.Id,
+                Title = task.Title,
+                IsCompleted = task.IsCompleted
+            };
         }
         //PUT Method: Update or UPDATE table_name SET col1 = value1, col2 = value2 WHERE condition
-        public bool UpdateTask(int id, string title, bool isCompleted)
+        public async Task<bool> UpdateTaskAsync(int id, string title, bool isCompleted)
         {
-            var task = _context.Tasks.FirstOrDefault(t => t.Id == id);
+            var task = await _context.Tasks.FindAsync(id);
 
             if(task == null)
                 return false;
             
             task.Title = title;
             task.IsCompleted = isCompleted;
+
+            await _context.SaveChangesAsync();
             return true;
         }
 
         //DELETE Method: Delete or DELETE FROM table_name WHERE condition
-        public bool DeleteTask(int id)
+        public async Task<bool> DeleteTaskAsync(int id)
         {
-            var task = _context.Tasks.FirstOrDefault(t => t.Id == id);
+            var task = await _context.Tasks.FindAsync(id);
 
             if(task == null)
                 return false;
 
             _context.Tasks.Remove(task);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return true;
         }
     }

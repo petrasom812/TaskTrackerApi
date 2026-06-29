@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TaskTrackerApi.Data;
+using TaskTrackerApi.Interface;
 using TaskTrackerApi.Services;
 
 DotNetEnv.Env.Load();
@@ -10,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<ServiceTask>();
+builder.Services.AddScoped<IServiceTask, ServiceTask>();
 builder.Services.AddDbContext<AppDbContext>(Options =>
     Options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")
